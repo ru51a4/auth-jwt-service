@@ -1,1 +1,1 @@
-jwt auth grpc
+jwt auth rest grpc(coming)
