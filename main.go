@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"strconv"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -80,27 +80,28 @@ func _login(login string, password string) string {
 	if err != nil {
 		return ""
 	}
-	fmt.Println(err)
-	claims := sjwt.New()
-	claims.Set("login", _user.Login)
-	claims.SetNotBeforeAt(time.Now().Add(time.Hour * 1))
+	_user.Password = ""
+	claims, _ := sjwt.ToClaims(_user)
+	claims.SetExpiresAt(time.Now().Add(time.Hour * 1))
 	jwt := claims.Generate(secretKey)
 	return jwt
 }
 
-func _auth(jwt string) string {
+func _auth(jwt string) User {
 	hasVerified := sjwt.Verify(jwt, secretKey)
 	if !hasVerified {
-		return ""
+		return User{}
 	}
 	claims, _ := sjwt.Parse(jwt)
 	err := claims.Validate()
 	if err != nil {
-		return ""
+		return User{}
 	}
-	res, _ := claims.GetStr("login")
-
-	return res
+	var _user User
+	_user.Login, _ = claims.GetStr("login")
+	role, _ := claims.GetStr("role_id")
+	_user.Role, _ = strconv.Atoi(role)
+	return _user
 }
 
 type Jwt struct {
@@ -142,7 +143,7 @@ func main() {
 		}
 		res := _auth(jwt.Jwt)
 		return c.JSON(&fiber.Map{
-			"login": res,
+			"user": res,
 		})
 	})
 
