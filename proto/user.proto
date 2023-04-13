@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package api;
+option go_package = "pkg/api";
+        
+service User {
+    rpc Auth(AuthRequest) returns (AuthResponse){}
+}
+
+message AuthRequest{
+    string login = 1;
+    string password = 2;
+}
+
+message AuthResponse{
+    string jwt = 1;
+}
